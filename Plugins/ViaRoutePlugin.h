@@ -79,7 +79,9 @@ public:
 
         //Get start and end Coordinate
         std::string start = routeParameters.options["start"];
+	unsigned start_osm_way_id = atoi(routeParameters.options["start_osm_way_id"].c_str());
         std::string dest = routeParameters.options["dest"];
+	unsigned dest_osm_way_id = atoi(routeParameters.options["dest_osm_way_id"].c_str());
 
         std::vector<std::string> textCoord = split (start, ',');
 
@@ -100,6 +102,7 @@ public:
             return;
         }
         rawRoute.rawViaNodeCoordinates.push_back(startCoord);
+        rawRoute.rawViaNodeOsmWayIDs.push_back(start_osm_way_id);
 
         for(unsigned i = 0; i < routeParameters.viaPoints.size(); ++i) {
             textCoord = split (routeParameters.viaPoints[i], ',');
@@ -116,12 +119,14 @@ public:
                 return;
             }
             rawRoute.rawViaNodeCoordinates.push_back(viaCoord);
+            rawRoute.rawViaNodeOsmWayIDs.push_back(0);
         }
         rawRoute.rawViaNodeCoordinates.push_back(targetCoord);
+        rawRoute.rawViaNodeOsmWayIDs.push_back(dest_osm_way_id);
         vector<PhantomNode> phantomNodeVector(rawRoute.rawViaNodeCoordinates.size());
 
         for(unsigned i = 0; i < rawRoute.rawViaNodeCoordinates.size(); ++i) {
-            searchEngine->FindPhantomNodeForCoordinate( rawRoute.rawViaNodeCoordinates[i], phantomNodeVector[i]);
+            searchEngine->FindPhantomNodeForCoordinate( rawRoute.rawViaNodeCoordinates[i], phantomNodeVector[i], rawRoute.rawViaNodeOsmWayIDs[i]);
         }
 
         unsigned distance = 0;

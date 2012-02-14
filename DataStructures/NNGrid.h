@@ -148,7 +148,7 @@ public:
 #endif
     }
 
-        bool FindPhantomNodeForCoordinate( const _Coordinate & location, PhantomNode & resultNode) {
+        bool FindPhantomNodeForCoordinate( const _Coordinate & location, PhantomNode & resultNode , const unsigned osmwayID = 0) {
         bool foundNode = false;
         _Coordinate startCoord(100000*(lat2y(static_cast<double>(location.lat)/100000.)), location.lon);
         /** search for point on edge close to source */
@@ -163,6 +163,8 @@ public:
         _Coordinate tmp, newEndpoint;
         double dist = numeric_limits<double>::max();
         BOOST_FOREACH(_GridEdge candidate, candidates) {
+            if ( osmwayID && osmwayID != candidate.nameID )
+                continue;
             double r = 0.;
             double tmpDist = ComputeDistance(startCoord, candidate.startCoord, candidate.targetCoord, tmp, &r);
             if(tmpDist < dist && !DoubleEpsilonCompare(dist, tmpDist)) {

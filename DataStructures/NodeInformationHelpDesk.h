@@ -60,8 +60,8 @@ public:
 	inline void FindNearestNodeCoordForLatLon(const _Coordinate& coord, _Coordinate& result) const {
 		readOnlyGrid->FindNearestCoordinateOnEdgeInNodeBasedGraph(coord, result);
 	}
-	inline void FindPhantomNodeForCoordinate( const _Coordinate & location, PhantomNode & resultNode) const {
-	    readOnlyGrid->FindPhantomNodeForCoordinate(location, resultNode);
+	inline void FindPhantomNodeForCoordinate( const _Coordinate & location, PhantomNode & resultNode , unsigned osmWayID = 0 ) const {
+	    readOnlyGrid->FindPhantomNodeForCoordinate(location, resultNode, osmWayID);
 	}
 
 	inline void FindRoutingStarts(const _Coordinate &start, const _Coordinate &target, PhantomNodes & phantomNodes) const {
