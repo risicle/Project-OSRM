@@ -24,9 +24,17 @@ DescriptionFactory::DescriptionFactory() { }
 
 DescriptionFactory::~DescriptionFactory() { }
 
-double DescriptionFactory::GetAngleBetweenCoordinates() const {
-    return 0.;//GetAngleBetweenTwoEdges(previousCoordinate, currentCoordinate, nextCoordinate);
+double DescriptionFactory::GetAzimuth(const _Coordinate& A, const _Coordinate& B) const {
+    double lonDiff = (A.lon-B.lon)/100000.;
+    double angle = atan2(sin(lonDiff)*cos(B.lat/100000.),
+            cos(A.lat/100000.)*sin(B.lat/100000.)-sin(A.lat/100000.)*cos(B.lat/100000.)*cos(lonDiff));
+    angle*=180/M_PI;
+    while(angle < 0)
+        angle += 360;
+
+    return angle;
 }
+
 
 void DescriptionFactory::SetStartSegment(const PhantomNode & _startPhantom) {
     startPhantom = _startPhantom;
@@ -57,9 +65,10 @@ void DescriptionFactory::AppendUnencodedPolylineString(std::string &output) {
     pc.printUnencodedString(pathDescription, output);
 }
 
-unsigned DescriptionFactory::Run(const unsigned zoomLevel) {
+void DescriptionFactory::Run(const unsigned zoomLevel, const unsigned duration) {
+
     if(0 == pathDescription.size())
-        return 0;
+        return;
 
     unsigned entireLength = 0;
     /** starts at index 1 */
@@ -86,10 +95,50 @@ unsigned DescriptionFactory::Run(const unsigned zoomLevel) {
             indexOfSegmentBegin = i;
         }
     }
+//    INFO("#segs: " << pathDescription.size());
+
+    //Post-processing to remove empty or nearly empty path segments
+    if(0 == pathDescription.back().length) {
+//        INFO("#segs: " << pathDescription.size() << ", last ratio: " << targetPhantom.ratio << ", length: " << pathDescription.back().length);
+        if(pathDescription.size() > 2){
+            pathDescription.pop_back();
+            pathDescription.back().necessary = true;
+            pathDescription.back().turnInstruction = TurnInstructions.NoTurn;
+            targetPhantom.nodeBasedEdgeNameID = (pathDescription.end()-2)->nameID;
+//            INFO("Deleting last turn instruction");
+        }
+    } else {
+        pathDescription[indexOfSegmentBegin].duration *= (1.-targetPhantom.ratio);
+    }
+    if(0 == pathDescription[0].length) {
+        if(pathDescription.size() > 2) {
+            pathDescription.erase(pathDescription.begin());
+            pathDescription[0].turnInstruction = TurnInstructions.HeadOn;
+            pathDescription[0].necessary = true;
+            startPhantom.nodeBasedEdgeNameID = pathDescription[0].nameID;
+//            INFO("Deleting first turn instruction, ratio: " << startPhantom.ratio << ", length: " << pathDescription[0].length);
+        }
+    } else {
+        pathDescription[0].duration *= startPhantom.ratio;
+    }
 
     //Generalize poly line
     dp.Run(pathDescription, zoomLevel);
 
     //fix what needs to be fixed else
-    return entireLength;
+    for(unsigned i = 0; i < pathDescription.size()-1 && pathDescription.size() >= 2; ++i){
+        if(pathDescription[i].necessary) {
+            int angle = 100*GetAzimuth(pathDescription[i].location, pathDescription[i+1].location);
+            pathDescription[i].bearing = angle/100.;
+        }
+    }
+
+    BuildRouteSummary(entireLength, duration);
+    return;
+}
+
+void DescriptionFactory::BuildRouteSummary(const unsigned distance, const unsigned time) {
+    summary.startName = startPhantom.nodeBasedEdgeNameID;
+    summary.destName = targetPhantom.nodeBasedEdgeNameID;
+    summary.BuildDurationAndLengthStrings(distance, time);
 }

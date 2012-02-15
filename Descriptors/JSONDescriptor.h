@@ -27,15 +27,16 @@ or see http://www.gnu.org/licenses/agpl.txt.
 #include "DescriptionFactory.h"
 #include "../DataStructures/SegmentInformation.h"
 #include "../DataStructures/TurnInstructions.h"
+#include "../Util/Azimuth.h"
 #include "../Util/StringUtil.h"
 
 template<class SearchEngineT>
 class JSONDescriptor : public BaseDescriptor<SearchEngineT>{
 private:
 	_DescriptorConfig config;
-	_RouteSummary summary;
 	DescriptionFactory descriptionFactory;
 	_Coordinate current;
+
 	struct {
 		int startIndex;
 		int nameID;
@@ -49,9 +50,7 @@ public:
 	void Run(http::Reply & reply, RawRouteData &rawRoute, PhantomNodes &phantomNodes, SearchEngineT &sEngine, const unsigned durationOfTrip) {
 		WriteHeaderToOutput(reply.content);
 		if(durationOfTrip != INT_MAX) {
-			summary.startName = sEngine.GetEscapedNameForNameID(phantomNodes.startPhantom.nodeBasedEdgeNameID);
 			descriptionFactory.SetStartSegment(phantomNodes.startPhantom);
-			summary.destName = sEngine.GetEscapedNameForNameID(phantomNodes.targetPhantom.nodeBasedEdgeNameID);
 			reply.content += "0,"
 			        "\"status_message\": \"Found route between points\",";
 
@@ -67,26 +66,25 @@ public:
 					"\"status_message\": \"Cannot find route between points\",";
 		}
 
-		summary.BuildDurationAndLengthStrings(descriptionFactory.Run(config.z), durationOfTrip);
+		descriptionFactory.Run(config.z, durationOfTrip);
 
 		reply.content += "\"route_summary\": {"
 				"\"total_distance\":";
-		reply.content += summary.lengthString;
+		reply.content += descriptionFactory.summary.lengthString;
 		reply.content += ","
 				"\"total_time\":";
-		reply.content += summary.durationString;
+		reply.content += descriptionFactory.summary.durationString;
 		reply.content += ","
 				"\"start_point\":\"";
-		reply.content += summary.startName;
+		reply.content += sEngine.GetEscapedNameForNameID(descriptionFactory.summary.startName);
 		reply.content += "\","
 				"\"end_point\":\"";
-		reply.content += summary.destName;
+		reply.content += sEngine.GetEscapedNameForNameID(descriptionFactory.summary.destName);
 		reply.content += "\"";
 		reply.content += "},";
 		reply.content += "\"route_geometry\": ";
 		if(config.geometry) {
-			if(config.encodeGeometry)
-				descriptionFactory.AppendEncodedPolylineString(reply.content, config.encodeGeometry);
+		    descriptionFactory.AppendEncodedPolylineString(reply.content, config.encodeGeometry);
 		} else {
 			reply.content += "[]";
 		}
@@ -101,7 +99,7 @@ public:
 			unsigned prefixSumOfNecessarySegments = 0;
 			roundAbout.leaveAtExit = 0;
 			roundAbout.nameID = 0;
-			std::string tmpDist, tmpLength, tmpDuration;
+			std::string tmpDist, tmpLength, tmpDuration, tmpBearing;
 			//Fetch data from Factory and generate a string from it.
 			BOOST_FOREACH(SegmentInformation & segment, descriptionFactory.pathDescription) {
 				if(TurnInstructions.TurnIsNecessary( segment.turnInstruction) ) {
@@ -134,10 +132,14 @@ public:
 						intToString(segment.duration, tmpDuration);
 						reply.content += tmpDuration;
 						reply.content += ",\"";
+						intToString(segment.length, tmpLength);
 						reply.content += tmpLength;
-						//TODO: fix heading
-						reply.content += "\",\"NE\",22.5";
-						reply.content += "]";
+						reply.content += "m\",\"";
+						reply.content += Azimuth::Get(segment.bearing);
+						reply.content += "\",";
+						doubleToStringWithTwoDigitsBehindComma(segment.bearing, tmpBearing);
+						reply.content += tmpBearing;
+			            reply.content += "]";
 					}
 				} else if(TurnInstructions.StayOnRoundAbout == segment.turnInstruction) {
 					++roundAbout.leaveAtExit;
@@ -159,6 +161,7 @@ public:
 					convertInternalReversedCoordinateToString(rawRoute.segmentEndCoordinates[segmentIdx].startPhantom.location, tmp);
 				else
 					convertInternalReversedCoordinateToString(rawRoute.rawViaNodeCoordinates[segmentIdx], tmp);
+
 				reply.content += tmp;
 				reply.content += "]";
 			}

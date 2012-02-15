@@ -148,7 +148,7 @@ public:
 #endif
     }
 
-        bool FindPhantomNodeForCoordinate( const _Coordinate & location, PhantomNode & resultNode , const unsigned osmwayID = 0) {
+    bool FindPhantomNodeForCoordinate( const _Coordinate & location, PhantomNode & resultNode , const unsigned osmwayID = 0) {
         bool foundNode = false;
         _Coordinate startCoord(100000*(lat2y(static_cast<double>(location.lat)/100000.)), location.lon);
         /** search for point on edge close to source */
@@ -174,7 +174,7 @@ public:
                 resultNode.nodeBasedEdgeNameID = candidate.nameID;
                 resultNode.weight1 = candidate.weight;
                 dist = tmpDist;
-                resultNode.location.lat = round(100000*(y2lat(static_cast<double>(tmp.lat)/100000.)));
+                resultNode.location.lat = round(100000.*(y2lat(static_cast<double>(tmp.lat)/100000.)));
                 resultNode.location.lon = tmp.lon;
                 foundNode = true;
                 smallestEdge = candidate;
@@ -187,23 +187,31 @@ public:
             }
         }
         //        INFO("startcoord: " << smallestEdge.startCoord << ", tgtcoord" <<  smallestEdge.targetCoord << "result: " << newEndpoint);
-        //        INFO("length of old edge: " << LengthOfVector(smallestEdge.startCoord, smallestEdge.targetCoord));
-        //        INFO("Length of new edge: " << LengthOfVector(smallestEdge.startCoord, newEndpoint));
+        //        INFO("length of old edge: " << ApproximateDistance(smallestEdge.startCoord, smallestEdge.targetCoord));
+        //        INFO("Length of new edge: " << ApproximateDistance(smallestEdge.startCoord, newEndpoint));
         //        assert(!resultNode.isBidirected() || (resultNode.weight1 == resultNode.weight2));
         //        if(resultNode.weight1 != resultNode.weight2) {
         //            INFO("-> Weight1: " << resultNode.weight1 << ", weight2: " << resultNode.weight2);
         //            INFO("-> node: " << resultNode.edgeBasedNode << ", bidir: " << (resultNode.isBidirected() ? "yes" : "no"));
         //        }
 
-        double ratio = std::min(1., LengthOfVector(smallestEdge.startCoord, newEndpoint)/LengthOfVector(smallestEdge.startCoord, smallestEdge.targetCoord) );
-        assert(ratio >= 0 && ratio <=1);
-        //        INFO("node: " << resultNode.edgeBasedNode << ", orig weight1: " << resultNode.weight1 << ", orig weight2: " << resultNode.weight2);
+//        INFO("startCoord: " << smallestEdge.startCoord << "; targetCoord: " << smallestEdge.targetCoord << ", newEndpoint: " << newEndpoint);
+        double ratio = (foundNode ? std::min(1., ApproximateDistance(smallestEdge.startCoord, newEndpoint)/ApproximateDistance(smallestEdge.startCoord, smallestEdge.targetCoord)) : 0);
+
+//        INFO("Length of vector: " << ApproximateDistance(smallestEdge.startCoord, newEndpoint)/ApproximateDistance(smallestEdge.startCoord, smallestEdge.targetCoord));
+        //Hack to fix rounding errors and wandering via nodes.
+        if(std::abs(location.lon - resultNode.location.lon) == 1)
+            resultNode.location.lon = location.lon;
+        if(std::abs(location.lat - resultNode.location.lat) == 1)
+             resultNode.location.lat = location.lat;
+
         resultNode.weight1 *= ratio;
         if(INT_MAX != resultNode.weight2) {
             resultNode.weight2 -= resultNode.weight1;
         }
-        //        INFO("New weight1: " << resultNode.weight1 << ", new weight2: " << resultNode.weight2);
-        //        INFO("selected node: " << resultNode.edgeBasedNode << ", bidirected: " << (resultNode.isBidirected() ? "yes" : "no") <<  "\n--")
+        resultNode.ratio = ratio;
+//        INFO("New weight1: " << resultNode.weight1 << ", new weight2: " << resultNode.weight2 << ", ratio: " << ratio);
+//        INFO("selected node: " << resultNode.edgeBasedNode << ", bidirected: " << (resultNode.isBidirected() ? "yes" : "no") <<  "\n--");
         return foundNode;
     }
 
@@ -271,12 +279,6 @@ private:
                 cellMap[fileIndex] = cellIndex;
             }
         }
-    }
-
-    inline double LengthOfVector(const _Coordinate & c1, const _Coordinate & c2) {
-        double length1 = std::sqrt(c1.lat/100000.*c1.lat/100000. + c1.lon/100000.*c1.lon/100000.);
-        double length2 = std::sqrt(c2.lat/100000.*c2.lat/100000. + c2.lon/100000.*c2.lon/100000.);
-        return std::fabs(length1-length2);
     }
 
     inline bool DoubleEpsilonCompare(const double d1, const double d2) {
@@ -427,7 +429,7 @@ private:
         if(c != a){
             const double m = (d-b)/(c-a); // slope
             // Projection of (x,y) on line joining (a,b) and (c,d)
-            p = ((x + (m*y)) + (m*m*a - m*b))/(1 + m*m);
+            p = ((x + (m*y)) + (m*m*a - m*b))/(1. + m*m);
             q = b + m*(p - a);
         }
         else{
@@ -486,7 +488,7 @@ private:
         assert( x<=1.0 && x >= 0);
         assert( y<=1.0 && y >= 0);
 
-        unsigned line = 1073741824.0*y;
+        unsigned line = (32768 * (32768-1))*y;
         line = line - (line % 32768);
         assert(line % 32768 == 0);
         unsigned column = 32768.*x;

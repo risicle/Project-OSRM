@@ -60,7 +60,7 @@ unsigned globalRestrictionCounter = 0;
 ExtractorCallbacks * extractCallBacks;
 
 bool nodeFunction(_Node n);
-bool adressFunction(_Node n, HashTable<string, string> keyVals);
+bool adressFunction(_Node n, HashTable<string, string> & keyVals);
 bool restrictionFunction(_RawRestrictionContainer r);
 bool wayFunction(_Way w);
 
@@ -69,7 +69,18 @@ bool removeIfUnused(ClassT n) { return (false == n.used); }
 
 
 int main (int argc, char *argv[]) {
-    GUARANTEE((argc > 1) ,"usage: \n" << argv[0] << " <file.osm/.osm.bz2/.osm.pbf>");
+
+    if(argc < 2) {
+        ERR("usage: \n" << argv[0] << " <file.osm/.osm.bz2/.osm.pbf>");
+    }
+
+    //Check if another instance of stxxl is already running or if there is a general problem
+    try {
+        stxxl::vector<unsigned> testForRunningInstance;
+    } catch(std::exception & e) {
+        ERR("Could not instantiate STXXL layer." << std::endl << e.what());
+    }
+    double startupTime = get_timestamp();
 
     INFO("extracting data from input file " << argv[1]);
     bool isPBF(false);
@@ -182,10 +193,9 @@ int main (int argc, char *argv[]) {
         parser = new XMLParser(argv[1]);
     }
     parser->RegisterCallbacks(&nodeFunction, &restrictionFunction, &wayFunction, &adressFunction);
-    GUARANTEE(parser->Init(), "Parser not initialized!");
+    if(!parser->Init())
+        INFO("Parser not initialized!");
     parser->Parse();
-    DELETE(parser);
-    stringMap.clear();
 
     try {
         //        INFO("raw no. of names:        " << externalMemory.nameVector.size());
@@ -446,10 +456,9 @@ int main (int argc, char *argv[]) {
         cout << "ok" << endl;
         time = get_timestamp();
         cout << "[extractor] writing street name index ... " << flush;
-        vector<unsigned> * nameIndex = new vector<unsigned>(externalMemory.nameVector.size()+1, 0);
         outputFileName.append(".names");
         ofstream nameOutFile(outputFileName.c_str(), ios::binary);
-        unsigned sizeOfNameIndex = nameIndex->size();
+        unsigned sizeOfNameIndex = externalMemory.nameVector.size();
         nameOutFile.write((char *)&(sizeOfNameIndex), sizeof(unsigned));
 
         BOOST_FOREACH(string str, externalMemory.nameVector) {
@@ -459,7 +468,6 @@ int main (int argc, char *argv[]) {
         }
 
         nameOutFile.close();
-        delete nameIndex;
         cout << "ok, after " << get_timestamp() - time << "s" << endl;
 
         //        time = get_timestamp();
@@ -478,6 +486,10 @@ int main (int argc, char *argv[]) {
         return false;
     }
 
+    double endTime = (get_timestamp() - startupTime);
+    INFO("Processed " << (usedNodeCounter)/(endTime) << " nodes/sec and " << usedEdgeCounter/endTime << " edges/sec");
+    stringMap.clear();
+    delete parser;
     delete extractCallBacks;
     cout << "[extractor] finished." << endl;
     return 0;
@@ -488,7 +500,7 @@ bool nodeFunction(_Node n) {
     return true;
 }
 
-bool adressFunction(_Node n, HashTable<string, string> keyVals){
+bool adressFunction(_Node n, HashTable<string, string> & keyVals){
     extractCallBacks->adressFunction(n, keyVals);
     return true;
 }

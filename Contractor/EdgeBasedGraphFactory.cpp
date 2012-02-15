@@ -129,8 +129,7 @@ void EdgeBasedGraphFactory::Run() {
         for(_NodeBasedDynamicGraph::EdgeIterator e1 = _nodeBasedGraph->BeginEdges(u); e1 < _nodeBasedGraph->EndEdges(u); ++e1) {
             ++nodeBasedEdgeCounter;
             _NodeBasedDynamicGraph::NodeIterator v = _nodeBasedGraph->GetTarget(e1);
-            if(_bollardNodes.Find(v) == true)
-            	continue;
+
             //loop over all reachable edges (v,w)
             bool isOnlyAllowed(false);
 
@@ -146,9 +145,9 @@ void EdgeBasedGraphFactory::Run() {
                         }
                     }
                     ++secondRestrictionIterator;
-                } while(u == secondRestrictionIterator->fromNode);
+                } while(secondRestrictionIterator != inputRestrictions.end() && u == secondRestrictionIterator->fromNode);
             }
-            if(_nodeBasedGraph->EndEdges(v) == _nodeBasedGraph->BeginEdges(v) + 1 && _nodeBasedGraph->GetEdgeData(e1).type != INT_MAX) {
+            if(_nodeBasedGraph->EndEdges(v) == _nodeBasedGraph->BeginEdges(v) + 1 && _nodeBasedGraph->GetEdgeData(e1).type != SHRT_MAX) {
                 EdgeBasedNode currentNode;
                 currentNode.nameID = _nodeBasedGraph->GetEdgeData(e1).nameID;
                 currentNode.lat1 = inputNodeInfoList[u].lat;
@@ -157,7 +156,6 @@ void EdgeBasedGraphFactory::Run() {
                 currentNode.lon2 = inputNodeInfoList[v].lon;
                 currentNode.id = _nodeBasedGraph->GetEdgeData(e1).edgeBasedNodeID;
                 currentNode.ignoreInGrid = _nodeBasedGraph->GetEdgeData(e1).ignoreInGrid;
-
 //                short startHeight = srtmLookup.height(currentNode.lon1/100000.,currentNode.lat1/100000. );
 //                short targetHeight = srtmLookup.height(currentNode.lon2/100000.,currentNode.lat2/100000. );
 //                short heightDiff = startHeight - targetHeight;
@@ -174,8 +172,15 @@ void EdgeBasedGraphFactory::Run() {
                 edgeBasedNodes.push_back(currentNode);
             }
 
+            if(_bollardNodes.Find(v) == true) {
+                numberOfSkippedTurns += _nodeBasedGraph->EndEdges(v) - _nodeBasedGraph->BeginEdges(v);
+                continue;
+            }
+
             for(_NodeBasedDynamicGraph::EdgeIterator e2 = _nodeBasedGraph->BeginEdges(v); e2 < _nodeBasedGraph->EndEdges(v); ++e2) {
                 _NodeBasedDynamicGraph::NodeIterator w = _nodeBasedGraph->GetTarget(e2);
+
+
                 //if (u,v,w) is a forbidden turn, continue
                 if(isOnlyAllowed && w != onlyToNode) {
                 	//We are at an only_-restriction but not at the right turn.
@@ -194,7 +199,7 @@ void EdgeBasedGraphFactory::Run() {
                                 }
                             }
                             ++secondRestrictionIterator;
-                        } while(u == secondRestrictionIterator->fromNode);
+                        } while(secondRestrictionIterator != inputRestrictions.end() && u == secondRestrictionIterator->fromNode);
                     }
 
                     if( !isTurnRestricted || (isOnlyAllowed && w == onlyToNode) ) { //only add an edge if turn is not prohibited
@@ -224,6 +229,21 @@ void EdgeBasedGraphFactory::Run() {
                         EdgeBasedEdge newEdge(edgeBasedSource, edgeBasedTarget, v,  nameID, distance, true, false, turnInstruction);
                         edgeBasedEdges.push_back(newEdge);
 
+                        if(_bollardNodes.Find(w) == true){
+//                            INFO("[" << w << "] loc: " << inputNodeInfoList[w].lat << "," << inputNodeInfoList[w].lon << ", tgt: " << edgeBasedTarget);
+                            //if node v is a bollard, then we need to add e2 as target node to the new set of edgebased nodes.
+                            //Otherwise it will not be possible to route to route to this node
+                            EdgeBasedNode currentNode;
+                            currentNode.nameID = _nodeBasedGraph->GetEdgeData(e1).nameID;
+                            currentNode.lat1 = inputNodeInfoList[v].lat;
+                            currentNode.lon1 = inputNodeInfoList[v].lon;
+                            currentNode.lat2 = inputNodeInfoList[w].lat;
+                            currentNode.lon2 = inputNodeInfoList[w].lon;
+                            currentNode.id = edgeBasedTarget;
+                            currentNode.ignoreInGrid = _nodeBasedGraph->GetEdgeData(e2).ignoreInGrid;
+                            edgeBasedNodes.push_back(currentNode);
+
+                        }
                         if(_nodeBasedGraph->GetEdgeData(e1).type != SHRT_MAX ) {
                             EdgeBasedNode currentNode;
                             currentNode.nameID = _nodeBasedGraph->GetEdgeData(e1).nameID;
@@ -233,7 +253,6 @@ void EdgeBasedGraphFactory::Run() {
                             currentNode.lon2 = inputNodeInfoList[v].lon;
                             currentNode.id = edgeBasedSource;
                             currentNode.ignoreInGrid = _nodeBasedGraph->GetEdgeData(e1).ignoreInGrid;
-
 //                            short startHeight = srtmLookup.height(currentNode.lon1/100000.,currentNode.lat1/100000. );
 //                            short targetHeight = srtmLookup.height(currentNode.lon2/100000.,currentNode.lat2/100000. );
 //                            short heightDiff = startHeight - targetHeight;
@@ -270,8 +289,6 @@ short EdgeBasedGraphFactory::AnalyzeTurn(const NodeID u, const NodeID v, const N
     _NodeBasedDynamicGraph::EdgeData & data1 = _nodeBasedGraph->GetEdgeData(edge1);
     _NodeBasedDynamicGraph::EdgeData & data2 = _nodeBasedGraph->GetEdgeData(edge2);
 
-    double angle = GetAngleBetweenTwoEdges(inputNodeInfoList[u], inputNodeInfoList[v], inputNodeInfoList[w]);
-
     //roundabouts need to be handled explicitely
     if(data1.roundabout && data2.roundabout) {
         //Is a turn possible? If yes, we stay on the roundabout!
@@ -293,9 +310,12 @@ short EdgeBasedGraphFactory::AnalyzeTurn(const NodeID u, const NodeID v, const N
     }
 
     //If street names stay the same and if we are certain that it is not a roundabout, we skip it.
-    if(data1.nameID == data2.nameID)
+    if( (data1.nameID == data2.nameID) && (0 != data1.nameID))
+        return TurnInstructions.NoTurn;
+    if( (data1.nameID == data2.nameID) && (0 == data1.nameID) && (_nodeBasedGraph->GetOutDegree(v) == 1) )
         return TurnInstructions.NoTurn;
 
+    double angle = GetAngleBetweenTwoEdges(inputNodeInfoList[u], inputNodeInfoList[v], inputNodeInfoList[w]);
     return TurnInstructions.GetTurnDirectionOfInstruction(angle);
 }
 

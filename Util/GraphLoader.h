@@ -364,9 +364,9 @@ template<typename NodeT, typename EdgeT>
 unsigned readHSGRFromStream(istream &in, vector<NodeT>& nodeList, vector<EdgeT> & edgeList) {
     unsigned numberOfNodes = 0;
     in.read((char*) & numberOfNodes, sizeof(unsigned));
-    nodeList.resize(numberOfNodes);
+    nodeList.resize(numberOfNodes + 1);
     NodeT currentNode;
-    for(unsigned nodeCounter = 0; nodeCounter < numberOfNodes; ++nodeCounter ) {
+    for(unsigned nodeCounter = 0; nodeCounter <= numberOfNodes; ++nodeCounter ) {
         in.read((char*) &currentNode, sizeof(NodeT));
         nodeList[nodeCounter] = currentNode;
     }
