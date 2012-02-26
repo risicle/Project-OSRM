@@ -26,6 +26,7 @@ struct RawRouteData {
     std::vector< PhantomNodes > segmentEndCoordinates;
     std::vector< _Coordinate > rawViaNodeCoordinates;
     std::vector< unsigned > rawViaNodeOsmWayIDs;
+    unsigned checkSum;
 };
 
 #endif /* RAWROUTEDATA_H_ */

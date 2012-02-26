@@ -1,7 +1,7 @@
 require 'net/http'
 
 def request_route a,b
-  @query = "http://localhost:5000/viaroute&start=#{a}&dest=#{b}&output=json&geomformat=cmp"
+  @query = "http://localhost:5000/viaroute?start=#{a}&dest=#{b}&output=json&geomformat=cmp"
   #log @query
   uri = URI.parse @query
   Net::HTTP.get_response uri
@@ -62,7 +62,7 @@ end
 
 def way_list instructions
   instructions.
-  #reject { |i| i[2]<=1 }.      #FIXME temporary hack to ignore instructions with length==0
   map { |r| r[1] }.
-  reject(&:empty?).join(',')
+  map { |r| r=="" ? '""' : r }.
+  join(',')
 end

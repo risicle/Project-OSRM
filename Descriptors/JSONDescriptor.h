@@ -66,12 +66,11 @@ public:
 					"\"status_message\": \"Cannot find route between points\",";
 		}
 
-		descriptionFactory.Run(config.z, durationOfTrip);
-
+        descriptionFactory.Run(config.z, durationOfTrip);
 		reply.content += "\"route_summary\": {"
 				"\"total_distance\":";
 		reply.content += descriptionFactory.summary.lengthString;
-		reply.content += ","
+		        reply.content += ","
 				"\"total_time\":";
 		reply.content += descriptionFactory.summary.durationString;
 		reply.content += ","
@@ -107,9 +106,9 @@ public:
 						roundAbout.nameID = segment.nameID;
 						roundAbout.startIndex = prefixSumOfNecessarySegments;
 					} else {
-						if(0 != prefixSumOfNecessarySegments)
+						if(0 != prefixSumOfNecessarySegments){
 							reply.content += ",";
-
+						}
 						reply.content += "[\"";
 						if(TurnInstructions.LeaveRoundAbout == segment.turnInstruction) {
 							reply.content += TurnInstructions.TurnStrings[TurnInstructions.EnterRoundAbout];
@@ -151,8 +150,8 @@ public:
 		reply.content += "],";
 		//list all viapoints so that the client may display it
 		reply.content += "\"via_points\":[";
+        std::string tmp;
 		if(true == config.geometry) {
-			std::string tmp;
 			for(unsigned segmentIdx = 1; segmentIdx < rawRoute.segmentEndCoordinates.size(); ++segmentIdx) {
 				if(segmentIdx > 1)
 					reply.content += ",";
@@ -166,8 +165,24 @@ public:
 				reply.content += "]";
 			}
 		}
-		reply.content += "],"
-				"\"transactionId\": \"OSRM Routing Engine JSON Descriptor (v0.3)\"";
+		reply.content += "],";
+        reply.content += "\"route_data\": {";
+        reply.content += "\"checksum\":";
+        intToString(rawRoute.checkSum, tmp);
+        reply.content += tmp;
+        reply.content += ", \"hint_array\": [";
+
+        for(unsigned i = 0; i < rawRoute.segmentEndCoordinates.size(); ++i) {
+            unsigned hint = ((rawRoute.segmentEndCoordinates[i].startPhantom.edgeBasedNode << 1) + rawRoute.segmentEndCoordinates[i].startPhantom.isBidirected());
+            intToString(hint, tmp);
+            reply.content += tmp;
+            reply.content += ", ";
+        }
+        intToString(((rawRoute.segmentEndCoordinates.back().targetPhantom.edgeBasedNode << 1)+ rawRoute.segmentEndCoordinates.back().targetPhantom.isBidirected()), tmp);
+        reply.content += tmp;
+        reply.content += "]";
+        reply.content += "},";
+		reply.content += "\"transactionId\": \"OSRM Routing Engine JSON Descriptor (v0.3)\"";
 		reply.content += "}";
 	}
 

@@ -8,6 +8,10 @@ Given /^the speedprofile settings$/ do |table|
   end
 end
 
+Given /^a grid size of (\d+) meters$/ do |meters|
+  set_grid_size meters
+end
+
 Given /^the nodes$/ do |table|
   table.raw.each_with_index do |row,ri|
     row.each_with_index do |name,ci|
@@ -15,7 +19,7 @@ Given /^the nodes$/ do |table|
         raise "*** node invalid name '#{name}', must be single characters" unless name.size == 1
         raise "*** invalid node name '#{name}', must me alphanumeric" unless name.match /[a-z0-9]/
         raise "*** duplicate node '#{name}'" if name_node_hash[name]
-        node = OSM::Node.new make_osm_id, OSM_USER, OSM_TIMESTAMP, ORIGIN[0]+ci*ZOOM, ORIGIN[1]-ri*ZOOM 
+        node = OSM::Node.new make_osm_id, OSM_USER, OSM_TIMESTAMP, ORIGIN[0]+ci*@zoom, ORIGIN[1]-ri*@zoom 
         node << { :name => name }
         node.uid = OSM_UID
         osm_db << node
@@ -27,21 +31,35 @@ end
 
 Given /^the ways$/ do |table|
   table.hashes.each do |row|
-    name = row.delete 'nodes'
-    raise "*** duplicate way '#{name}'" if name_way_hash[name]
     way = OSM::Way.new make_osm_id, OSM_USER, OSM_TIMESTAMP
-    defaults = { 'highway' => 'primary' }
-    way << defaults.merge( 'name' => name ).merge(row)
     way.uid = OSM_UID
-    name.each_char do |c|
+    
+    nodes = row.delete 'nodes'
+    raise "*** duplicate way '#{nodes}'" if name_way_hash[nodes]
+    nodes.each_char do |c|
       raise "*** node invalid name '#{c}', must be single characters" unless c.size == 1
       raise "*** ways cannot use numbered nodes, '#{name}'" unless c.match /[a-z]/
       node = find_node_by_name(c)
       raise "*** unknown node '#{c}'" unless node
       way << node
     end
+    
+    defaults = { 'highway' => 'primary' }
+    tags = defaults.merge(row)
+    
+    if row['name'] == nil
+      tags['name'] = nodes
+    elsif (row['name'] == '""') || (row['name'] == "''")
+      tags['name'] = ''
+    elsif row['name'] == ''
+      tags.delete 'name'
+    else
+      tags['name'] = row['name']
+    end
+    
+    way << tags
     osm_db << way
-    name_way_hash[name] = way
+    name_way_hash[nodes] = way
   end
 end
 

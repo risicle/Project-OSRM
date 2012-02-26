@@ -157,28 +157,34 @@ Then /^routability should be$/ do |table|
     table.hashes.each_with_index do |row,i|
       got = row.dup
       attempts = []
-      if table.headers.include? 'forw'
-        response = request_route("#{ORIGIN[1]},#{ORIGIN[0]+(1+WAY_SPACING*i)*ZOOM}","#{ORIGIN[1]},#{ORIGIN[0]+(2+WAY_SPACING*i)*ZOOM}")
-        got['forw'] = route_status response
-        if got['forw'] != row['forw']
+      ['forw','backw'].each do |direction|
+        if table.headers.include? direction
+          if direction == 'forw'
+            response = request_route("#{ORIGIN[1]},#{ORIGIN[0]+(1+WAY_SPACING*i)*@zoom}","#{ORIGIN[1]},#{ORIGIN[0]+(2+WAY_SPACING*i)*@zoom}")
+          elsif direction == 'backw'
+            response = request_route("#{ORIGIN[1]},#{ORIGIN[0]+(2+WAY_SPACING*i)*@zoom}","#{ORIGIN[1]},#{ORIGIN[0]+(1+WAY_SPACING*i)*@zoom}")
+          end
+          got[direction] = route_status response
           json = JSON.parse(response.body)
-          attempts << { :attempt => 'Forward', :query => @query, :response => response }
+          if got[direction].empty? == false
+            route = way_list json['route_instructions']
+            if route != "w#{i}"
+              got[direction] = "testing w#{i}, but got #{route}!?"
+            elsif row[direction] =~ /\d+s/
+              time = json['route_summary']['total_time']
+              got[direction] = "#{time}s"
+            end
+          end
+          if got[direction] != row[direction]
+            attempts << { :attempt => direction, :query => @query, :response => response }
+          end
         end
       end
-      if table.headers.include? 'backw'
-        response = request_route("#{ORIGIN[1]},#{ORIGIN[0]+(2+WAY_SPACING*i)*ZOOM}","#{ORIGIN[1]},#{ORIGIN[0]+(1+WAY_SPACING*i)*ZOOM}")
-        got['backw'] = route_status response
-        if got['backw'] != row['backw']
-          attempts << { :attempt => 'Backward', :query => @query, :response => response }
-        end
-      end
-      if got != row
-        log_fail row,got,attempts
-      end
+      log_fail row,got,attempts if got != row
       actual << got
     end
   end
-  table.diff! actual
+  table.routing_diff! actual
 end
 
 When /^I route I should get$/ do |table|
@@ -198,7 +204,7 @@ When /^I route I should get$/ do |table|
           instructions = way_list json['route_instructions']
         end
       end
-
+      
       got = {'from' => row['from'], 'to' => row['to'] }
       if table.headers.include? 'start'
         got['start'] = instructions ? json['route_summary']['start_point'] : nil
@@ -208,14 +214,22 @@ When /^I route I should get$/ do |table|
       end
       if table.headers.include? 'route'
         got['route'] = (instructions || '').strip
+        if table.headers.include? 'distance'
+          got['distance'] = instructions ? json['route_summary']['total_distance'].to_s : nil
+        end
+        if table.headers.include? 'time'
+          raise "*** time must be specied in seconds. (ex: 60s)" unless row['time'] =~ /\d+s/
+          got['time'] = instructions ? "#{json['route_summary']['total_time'].to_s}s" : nil
+        end
       end
-
-      if got['route'] != row['route'] || got['start'] != row['start'] || got['end'] != row['end']
-        failed = { :attempt => 'Backward', :query => @query, :response => response }
+      
+      if row != got
+        failed = { :attempt => 'route', :query => @query, :response => response }
         log_fail row,got,[failed]
       end
+      
       actual << got
     end
   end
-  table.diff! actual
+  table.routing_diff! actual
 end
