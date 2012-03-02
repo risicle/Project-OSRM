@@ -52,7 +52,7 @@ public:
             std::ostringstream s;
             s << 10*(round(distance/10.));
             lengthString = s.str();
-            int travelTime = time/10 + 1;
+            float travelTime = time/10.0;
             s.str("");
             s << travelTime;
             durationString = s.str();
