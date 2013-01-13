@@ -383,7 +383,9 @@ public:
 	}
 
 	inline std::string GetEscapedNameForNameID(const NodeID nameID) const {
-		return std::string("");
+		std::string tmp;
+		intToString ( nameID , tmp );
+		return tmp;
 	}
 
 	inline std::string GetEscapedNameForEdgeBasedEdgeID(const unsigned edgeID) const {
