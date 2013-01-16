@@ -36,6 +36,7 @@ struct RawRouteData {
     std::vector< _PathData > computedAlternativePath;
     std::vector< PhantomNodes > segmentEndCoordinates;
     std::vector< _Coordinate > rawViaNodeCoordinates;
+    std::vector< unsigned > rawViaNodeOsmWayIDs;
     unsigned checkSum;
     int lengthOfShortestPath;
     int lengthOfAlternativePath;

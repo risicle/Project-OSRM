@@ -130,8 +130,8 @@ public:
 	    _queryData.nodeHelpDesk->FindRoutingStarts(start, target, routingStarts);
 	}
 
-	inline void FindPhantomNodeForCoordinate(const _Coordinate & location, PhantomNode & result, unsigned zoomLevel) const {
-	    _queryData.nodeHelpDesk->FindPhantomNodeForCoordinate(location, result, zoomLevel);
+	inline void FindPhantomNodeForCoordinate(const _Coordinate & location, PhantomNode & result, unsigned zoomLevel, unsigned osmwayID = 0) const {
+	    _queryData.nodeHelpDesk->FindPhantomNodeForCoordinate(location, result, zoomLevel, osmwayID);
 	}
 
 	inline NodeID GetNameIDForOriginDestinationNodeID(const NodeID s, const NodeID t) const {
@@ -150,7 +150,7 @@ public:
 	}
 
 	inline std::string GetEscapedNameForNameID(const unsigned nameID) const {
-	    return ((nameID >= _queryData.names.size() || nameID == 0) ? std::string("") : HTMLEntitize(_queryData.names.at(nameID)));
+		return std::string("");
 	}
 
 	inline std::string GetEscapedNameForEdgeBasedEdgeID(const unsigned edgeID) const {

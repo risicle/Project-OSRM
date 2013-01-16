@@ -80,15 +80,8 @@ void ExtractorCallbacks::wayFunction(ExtractionWay &parsed_way) {
             return;
         }
 
-        //Get the unique identifier for the street name
-        const StringMap::const_iterator string_map_iterator = stringMap->find(parsed_way.name);
-        if(stringMap->end() == string_map_iterator) {
-            parsed_way.nameID = externalMemory->nameVector.size();
-            externalMemory->nameVector.push_back(parsed_way.name);
-            stringMap->insert(std::make_pair(parsed_way.name, parsed_way.nameID));
-        } else {
-            parsed_way.nameID = string_map_iterator->second;
-        }
+        // cram the osm way id in in place of the name id and don't bother adding the name to the name vector
+        parsed_way.nameID = parsed_way.id;
 
         if(ExtractionWay::opposite == parsed_way.direction) {
             std::reverse( parsed_way.path.begin(), parsed_way.path.end() );

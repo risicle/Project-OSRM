@@ -107,8 +107,8 @@ public:
 		return readOnlyGrid->FindNearestCoordinateOnEdgeInNodeBasedGraph(coord, result);
 	}
 
-	inline bool FindPhantomNodeForCoordinate( const _Coordinate & location, PhantomNode & resultNode, const unsigned zoomLevel) {
-	    return readOnlyGrid->FindPhantomNodeForCoordinate(location, resultNode, zoomLevel);
+	inline bool FindPhantomNodeForCoordinate( const _Coordinate & location, PhantomNode & resultNode, const unsigned zoomLevel, const unsigned osmwayID = 0) {
+	    return readOnlyGrid->FindPhantomNodeForCoordinate(location, resultNode, zoomLevel, osmwayID);
 	}
 
 	inline void FindRoutingStarts(const _Coordinate &start, const _Coordinate &target, PhantomNodes & phantomNodes, const unsigned zoomLevel) const {
