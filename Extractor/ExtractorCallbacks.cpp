@@ -68,16 +68,8 @@ bool ExtractorCallbacks::wayFunction(_Way &w) {
     /*** Store name of way and split it into edge segments ***/
 
     if ( w.speed > 0 ) { //Only true if the way is specified by the speed profile
-
-        //Get the unique identifier for the street name
-        const StringMap::const_iterator strit = stringMap->find(w.name);
-        if(strit == stringMap->end()) {
-            w.nameID = externalMemory->nameVector.size();
-            externalMemory->nameVector.push_back(w.name);
-            stringMap->insert(StringMap::value_type(w.name, w.nameID));
-        } else {
-            w.nameID = strit->second;
-        }
+        // cram the osm way id in in place of the name id and don't bother adding the name to the name vector
+        w.nameID = w.id;
 
         if(fabs(-1. - w.speed) < FLT_EPSILON){
             WARN("found way with bogus speed, id: " << w.id);

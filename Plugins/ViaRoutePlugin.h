@@ -101,7 +101,7 @@ public:
                 }
             }
 //            INFO("Brute force lookup of coordinate " << i);
-            searchEngine->FindPhantomNodeForCoordinate( rawRoute.rawViaNodeCoordinates[i], phantomNodeVector[i], routeParameters.zoomLevel);
+            searchEngine->FindPhantomNodeForCoordinate( rawRoute.rawViaNodeCoordinates[i], phantomNodeVector[i], routeParameters.zoomLevel, i < routeParameters.osmwayIDs.size () ? routeParameters.osmwayIDs[i] : 0);
         }
 
         for(unsigned i = 0; i < phantomNodeVector.size()-1; ++i) {

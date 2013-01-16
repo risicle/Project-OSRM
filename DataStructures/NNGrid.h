@@ -156,7 +156,7 @@ public:
         return (a == b && c == d) || (a == c && b == d) || (a == d && b == c);
     }
 
-    bool FindPhantomNodeForCoordinate( const _Coordinate & location, PhantomNode & resultNode, const unsigned zoomLevel) {
+    bool FindPhantomNodeForCoordinate( const _Coordinate & location, PhantomNode & resultNode, const unsigned zoomLevel, const unsigned osmwayID = 0) {
         bool ignoreTinyComponents = (zoomLevel <= 14);
 //        INFO("Coordinate: " << location << ", zoomLevel: " << zoomLevel << ", ignoring tinyComponentents: " << (ignoreTinyComponents ? "yes" : "no"));
 //        double time1 = get_timestamp();
@@ -180,6 +180,8 @@ public:
         double r, tmpDist;
 
         BOOST_FOREACH(_GridEdge candidate, candidates) {
+            if ( osmwayID && osmwayID != candidate.nameID )
+                continue;
             if(candidate.belongsToTinyComponent && ignoreTinyComponents)
                 continue;
             r = 0.;
