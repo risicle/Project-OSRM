@@ -53,7 +53,7 @@ public:
         _RouteSummary() : lengthString("0"), durationString("0"), startName(0), destName(0) {}
         void BuildDurationAndLengthStrings(const double distance, const unsigned time) {
             //compute distance/duration for route summary
-            intToString(round(distance), lengthString);
+            intToString(distance, lengthString);
             int travelTime = time/10 + 1;
             intToString(travelTime, durationString);
         }
