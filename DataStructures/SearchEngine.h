@@ -149,7 +149,10 @@ public:
 	}
 
 	inline std::string GetEscapedNameForNameID(const unsigned nameID) const {
-		return std::string("");
+		// nameID is actually our osmwayID - output that instead
+		std::string tmp;
+		intToString ( nameID , tmp );
+		return tmp;
 	}
 
 	inline std::string GetEscapedNameForEdgeBasedEdgeID(const unsigned edgeID) const {
