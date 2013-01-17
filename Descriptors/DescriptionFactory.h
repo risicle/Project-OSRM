@@ -54,7 +54,7 @@ public:
         void BuildDurationAndLengthStrings(const double distance, const unsigned time) {
             //compute distance/duration for route summary
             std::ostringstream s;
-            s << round(distance);
+            s << distance;
             lengthString = s.str();
             int travelTime = time/10 + 1;
             s.str("");
