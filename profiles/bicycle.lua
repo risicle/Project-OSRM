@@ -40,29 +40,29 @@ pedestrian_speeds = {
 }
 
 railway_speeds = { 
-	["train"] = 10,
-	["railway"] = 10,
-	["subway"] = 10,
-	["light_rail"] = 10,
-	["monorail"] = 10,
-	["tram"] = 10
+-- 	["train"] = 10,
+-- 	["railway"] = 10,
+-- 	["subway"] = 10,
+-- 	["light_rail"] = 10,
+-- 	["monorail"] = 10,
+-- 	["tram"] = 10
 }
 
 platform_speeds = { 
-	["platform"] = walking_speed
+--	["platform"] = walking_speed
 }
 
 amenity_speeds = { 
-	["parking"] = 10,
-	["parking_entrance"] = 10
+-- 	["parking"] = 10,
+-- 	["parking_entrance"] = 10
 }
 
 man_made_speeds = { 
-	["pier"] = walking_speed
+--	["pier"] = walking_speed
 }
 
 route_speeds = { 
-	["ferry"] = 5
+-- 	["ferry"] = 5
 }
 
 take_minimum_of_speeds 	= true
