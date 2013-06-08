@@ -16,6 +16,8 @@ walking_speed = 6
 
 bicycle_speeds = { 
 	["cycleway"] = default_speed,
+	["trunk"] = default_speed,
+	["trunk_link"] = default_speed,
 	["primary"] = default_speed,
 	["primary_link"] = default_speed,
 	["secondary"] = default_speed,
