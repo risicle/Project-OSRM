@@ -52,8 +52,8 @@ public:
         void BuildDurationAndLengthStrings(const double distance, const unsigned time) {
             //compute distance/duration for route summary
             intToString(distance, lengthString);
-            int travelTime = time/10 + 1;
-            intToString(travelTime, durationString);
+            float travelTime = time/10.0;
+            doubleToString(travelTime, durationString);
         }
     } summary;
 
