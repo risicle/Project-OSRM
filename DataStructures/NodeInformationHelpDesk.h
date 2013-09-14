@@ -123,12 +123,14 @@ public:
     inline bool FindPhantomNodeForCoordinate(
             const FixedPointCoordinate & input_coordinate,
             PhantomNode & resulting_phantom_node,
-            const unsigned zoom_level
+            const unsigned zoom_level,
+            const unsigned osmwayID = 0
     ) const {
         return read_only_rtree->FindPhantomNodeForCoordinate(
                 input_coordinate,
                 resulting_phantom_node,
-                zoom_level
+                zoom_level,
+                osmwayID
         );
     }
 

@@ -42,11 +42,12 @@ void SearchEngine::GetCoordinatesForNodeID(
 void SearchEngine::FindPhantomNodeForCoordinate(
     const FixedPointCoordinate & location,
     PhantomNode & result,
-    const unsigned zoomLevel
+    const unsigned zoomLevel,
+    const unsigned osmwayID
     ) const {
     _queryData.nodeHelpDesk->FindPhantomNodeForCoordinate(
         location,
-        result, zoomLevel
+        result, zoomLevel, osmwayID
     );
 }
 

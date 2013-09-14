@@ -52,6 +52,7 @@ struct RouteParameters {
     std::string jsonpParameter;
     std::string language;
     std::vector<std::string> hints;
+    std::vector<unsigned> osmwayIDs; 
     std::vector<FixedPointCoordinate> coordinates;
     typedef HashTable<std::string, std::string>::const_iterator OptionsIterator;
 
@@ -92,6 +93,11 @@ struct RouteParameters {
     void addHint(const std::string & s) {
         hints.resize(coordinates.size());
         hints.back() = s;
+    }
+
+    void addOSMWayID(const unsigned id) {
+        osmwayIDs.resize(coordinates.size(), 0);
+        osmwayIDs.back() = id;
     }
 
     void setLanguage(const std::string & s) {

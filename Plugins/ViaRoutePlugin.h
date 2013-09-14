@@ -99,7 +99,7 @@ public:
                 }
             }
 //            SimpleLogger().Write() << "Brute force lookup of coordinate " << i;
-            searchEnginePtr->FindPhantomNodeForCoordinate( rawRoute.rawViaNodeCoordinates[i], phantomNodeVector[i], routeParameters.zoomLevel);
+            searchEnginePtr->FindPhantomNodeForCoordinate( rawRoute.rawViaNodeCoordinates[i], phantomNodeVector[i], routeParameters.zoomLevel, i < routeParameters.osmwayIDs.size () ? routeParameters.osmwayIDs[i] : 0);
         }
 
         for(unsigned i = 0; i < phantomNodeVector.size()-1; ++i) {

@@ -598,7 +598,8 @@ public:
     bool FindPhantomNodeForCoordinate(
             const FixedPointCoordinate & input_coordinate,
             PhantomNode & result_phantom_node,
-            const unsigned zoom_level
+            const unsigned zoom_level,
+            const unsigned osmwayID = 0
     ) {
 
         bool ignore_tiny_components = (zoom_level <= 14);
@@ -640,6 +641,9 @@ public:
                     //SimpleLogger().Write() << "checking " << current_leaf_node.object_count << " elements";
                     for(uint32_t i = 0; i < current_leaf_node.object_count; ++i) {
                         DataT & current_edge = current_leaf_node.objects[i];
+                        if(osmwayID && osmwayID != current_edge.nameID) {
+                            continue;
+                        }
                         if(ignore_tiny_components && current_edge.belongsToTinyComponent) {
                             continue;
                         }

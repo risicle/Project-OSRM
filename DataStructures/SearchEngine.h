@@ -56,7 +56,8 @@ public:
     void FindPhantomNodeForCoordinate(
         const FixedPointCoordinate & location,
         PhantomNode & result,
-        unsigned zoomLevel
+        unsigned zoomLevel,
+        unsigned osmwayID = 0
     ) const;
 
     NodeID GetNameIDForOriginDestinationNodeID(
