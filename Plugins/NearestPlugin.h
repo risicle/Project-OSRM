@@ -84,6 +84,8 @@ public:
             reply.content += tmp;
         }
         reply.content += "],";
+        reply.content += "\"oneway\":";
+        reply.content += result.isBidirected () ? "false," : "true,";
         reply.content += "\"name\":\"";
         if(UINT_MAX != result.edgeBasedNode) {
             intToString(result.nodeBasedEdgeNameID, tmp);
