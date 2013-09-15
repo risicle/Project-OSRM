@@ -261,26 +261,26 @@ function way_function (way)
 		way.direction = Way.opposite
 	elseif oneway == "no" or oneway == "0" or oneway == "false" then
 		way.direction = Way.bidirectional
-	elseif cycleway and string.find(cycleway, "opposite") == 1 then
-		if impliedOneway then
-			way.direction = Way.opposite
-		else
-			way.direction = Way.bidirectional
-		end
-	elseif cycleway_left and cycleway_tags[cycleway_left] and cycleway_right and cycleway_tags[cycleway_right] then
-		way.direction = Way.bidirectional
-	elseif cycleway_left and cycleway_tags[cycleway_left] then
-		if impliedOneway then
-			way.direction = Way.opposite
-		else
-			way.direction = Way.bidirectional
-		end
-	elseif cycleway_right and cycleway_tags[cycleway_right] then
-		if impliedOneway then
-			way.direction = Way.oneway
-		else
-			way.direction = Way.bidirectional
-		end
+-- 	elseif cycleway and string.find(cycleway, "opposite") == 1 then
+-- 		if impliedOneway then
+-- 			way.direction = Way.opposite
+-- 		else
+-- 			way.direction = Way.bidirectional
+-- 		end
+-- 	elseif cycleway_left and cycleway_tags[cycleway_left] and cycleway_right and cycleway_tags[cycleway_right] then
+-- 		way.direction = Way.bidirectional
+-- 	elseif cycleway_left and cycleway_tags[cycleway_left] then
+-- 		if impliedOneway then
+-- 			way.direction = Way.opposite
+-- 		else
+-- 			way.direction = Way.bidirectional
+-- 		end
+-- 	elseif cycleway_right and cycleway_tags[cycleway_right] then
+-- 		if impliedOneway then
+-- 			way.direction = Way.oneway
+-- 		else
+-- 			way.direction = Way.bidirectional
+-- 		end
 	elseif oneway == "-1" then
 		way.direction = Way.opposite
 	elseif oneway == "yes" or oneway == "1" or oneway == "true" then
