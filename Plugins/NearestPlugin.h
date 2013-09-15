@@ -56,7 +56,7 @@ public:
 
         //query to helpdesk
         PhantomNode result;
-        nodeHelpDesk->FindPhantomNodeForCoordinate(routeParameters.coordinates[0], result, routeParameters.zoomLevel);
+        nodeHelpDesk->FindPhantomNodeForCoordinate(routeParameters.coordinates[0], result, routeParameters.zoomLevel, routeParameters.osmwayIDs.size () ? routeParameters.osmwayIDs[0] : 0);
 
         std::string tmp;
         //json
@@ -85,8 +85,10 @@ public:
         }
         reply.content += "],";
         reply.content += "\"name\":\"";
-        if(UINT_MAX != result.edgeBasedNode)
-            reply.content += names[result.nodeBasedEdgeNameID];
+        if(UINT_MAX != result.edgeBasedNode) {
+            intToString(result.nodeBasedEdgeNameID, tmp);
+            reply.content += tmp;
+        }
         reply.content += "\"";
         reply.content += ",\"transactionId\":\"OSRM Routing Engine JSON Nearest (v0.3)\"";
         reply.content += ("}");
