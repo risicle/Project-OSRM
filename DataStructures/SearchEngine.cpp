@@ -71,12 +71,10 @@ NodeID SearchEngine::GetNameIDForOriginDestinationNodeID(
 }
 
 std::string SearchEngine::GetEscapedNameForNameID(const unsigned nameID) const {
-    bool is_name_invalid = (nameID >= _queryData.names.size() || nameID == 0);
-    if (is_name_invalid) {
-        return std::string("");
-    }
-
-    return HTMLEntitize(_queryData.names.at(nameID));
+    // nameID is actually our osmwayID - output that instead
+    std::string tmp;
+    intToString ( nameID , tmp );
+    return tmp; 
 }
 
 SearchEngineHeapPtr SearchEngineData::forwardHeap;
