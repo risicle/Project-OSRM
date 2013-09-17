@@ -28,6 +28,8 @@ void ExtractionContainers::PrepareData(const std::string & output_file_name, con
         boost::uint64_t memory_to_use = static_cast<boost::uint64_t>(amountOfRAM) * 1024 * 1024 * 1024;
 	
 	pqxx::result pqresult;
+	std::string xcoord;
+	std::string ycoord;
 
         pqxx::connection c("dbname=pmp user=bob");
         pqxx::work txn(c);
@@ -225,23 +227,24 @@ void ExtractionContainers::PrepareData(const std::string & output_file_name, con
                 if(edgeIT->startCoord.lat != INT_MIN && edgeIT->startCoord.lon != INT_MIN) {
                     edgeIT->targetCoord.lat = nodesIT->lat;
                     edgeIT->targetCoord.lon = nodesIT->lon;
+		    
+		   int mid_lat = ( edgeIT->targetCoord.lat + edgeIT->startCoord.lat ) / 2;
+		   int mid_lon = ( edgeIT->targetCoord.lon + edgeIT->startCoord.lon ) / 2;
+		    
+		   convertInternalLatLonToString ( mid_lon , xcoord );
+		   convertInternalLatLonToString ( mid_lat , ycoord );
+		   pqresult = txn.exec( std::string("SELECT rno2 FROM roads_table WHERE ST_Expand ( ST_Transform ( ST_SetSRID ( ST_Point ( ") + xcoord + "," + ycoord + " ) , 4326 ) , 27700 ) , 100 ) && roads_table.the_geom ORDER BY ST_Distance ( ST_Transform ( ST_SetSRID ( ST_Point ( " + xcoord + "," + ycoord + " ) , 4326 ) , 27700 ) , roads_table.the_geom ) ASC LIMIT 1" );
+		   double pmp_weight = 10.0;
+		   if ( pqresult.size () == 1 )
+			pmp_weight = pqresult[0][0].as<float>();
 
                     double distance = ApproximateDistance(edgeIT->startCoord.lat, edgeIT->startCoord.lon, nodesIT->lat, nodesIT->lon);
                     assert(edgeIT->speed != -1);
-                    double weight = ( distance * 10. ) / (edgeIT->speed / 3.6);
+                    double weight = ( distance * pmp_weight ) / (edgeIT->speed / 3.6);
                     int intWeight = std::max(1, (int)std::floor((edgeIT->isDurationSet ? edgeIT->speed : weight)+.5) );
                     int intDist = std::max(1, (int)distance);
                     short zero = 0;
                     short one = 1;
-		    
-		   pqresult = txn.exec( "SELECT 555" );
-		   if ( pqresult.size () != 1 )
-                        std::cerr << "oh dear: query result size = " << pqresult.size () << std::endl;
-		   else
-		   {
-			   std::cerr << "query result = " << pqresult[0][0].as<int>() << std::endl;
-		   }
-
 
                     fout.write((char*)&edgeIT->start, sizeof(unsigned));
                     fout.write((char*)&edgeIT->target, sizeof(unsigned));

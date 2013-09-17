@@ -25,6 +25,7 @@
 #include "../Util/SimpleLogger.h"
 #include "../Util/TimingUtil.h"
 #include "../Util/UUID.h"
+#include "../Util/StringUtil.h"
 
 #include <pqxx/pqxx>
 
