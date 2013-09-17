@@ -108,6 +108,8 @@ target_link_libraries (osrm-routed ${ZLIB_LIBRARY})
 find_package( Threads REQUIRED )
 target_link_libraries (osrm-extract ${Threads_LIBRARY})
 
+target_link_libraries (osrm-extract pqxx)
+
 find_package( LuaJIT )
 IF( NOT APPLE AND LUAJIT_INCLUDE_DIR AND LUAJIT_LIBRARIES)
 	include_directories(${LUAJIT_INCLUDE_DIR})

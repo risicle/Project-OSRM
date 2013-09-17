@@ -26,6 +26,11 @@ void ExtractionContainers::PrepareData(const std::string & output_file_name, con
         unsigned usedEdgeCounter = 0;
         double time = get_timestamp();
         boost::uint64_t memory_to_use = static_cast<boost::uint64_t>(amountOfRAM) * 1024 * 1024 * 1024;
+	
+	pqxx::result pqresult;
+
+        pqxx::connection c("dbname=pmp user=bob");
+        pqxx::work txn(c);
 
         std::cout << "[extractor] Sorting used nodes        ... " << std::flush;
         stxxl::sort(usedNodeIDs.begin(), usedNodeIDs.end(), Cmp(), memory_to_use);
@@ -228,6 +233,15 @@ void ExtractionContainers::PrepareData(const std::string & output_file_name, con
                     int intDist = std::max(1, (int)distance);
                     short zero = 0;
                     short one = 1;
+		    
+		   pqresult = txn.exec( "SELECT 555" );
+		   if ( pqresult.size () != 1 )
+                        std::cerr << "oh dear: query result size = " << pqresult.size () << std::endl;
+		   else
+		   {
+			   std::cerr << "query result = " << pqresult[0][0].as<int>() << std::endl;
+		   }
+
 
                     fout.write((char*)&edgeIT->start, sizeof(unsigned));
                     fout.write((char*)&edgeIT->target, sizeof(unsigned));

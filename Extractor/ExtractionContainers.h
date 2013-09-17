@@ -26,6 +26,8 @@
 #include "../Util/TimingUtil.h"
 #include "../Util/UUID.h"
 
+#include <pqxx/pqxx>
+
 #include <boost/foreach.hpp>
 #include <stxxl.h>
 
