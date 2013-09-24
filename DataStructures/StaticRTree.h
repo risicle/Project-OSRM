@@ -78,17 +78,17 @@ private:
         ) {
             for(uint32_t i = 0; i < element_count; ++i) {
                 min_lon = std::min(
-                        min_lon, std::min(objects[i].lon1, objects[i].lon2)
+                        min_lon, std::min(objects[i].lon1, objects[i].lon2)-1
                 );
                 max_lon = std::max(
-                        max_lon, std::max(objects[i].lon1, objects[i].lon2)
+                        max_lon, std::max(objects[i].lon1, objects[i].lon2)+1
                 );
 
                 min_lat = std::min(
-                        min_lat, std::min(objects[i].lat1, objects[i].lat2)
+                        min_lat, std::min(objects[i].lat1, objects[i].lat2)-1
                 );
                 max_lat = std::max(
-                        max_lat, std::max(objects[i].lat1, objects[i].lat2)
+                        max_lat, std::max(objects[i].lat1, objects[i].lat2)+1
                 );
             }
         }
